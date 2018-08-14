@@ -3,6 +3,7 @@
 import * as d3 from 'd3'
 import {GraphVisualizer} from './visualizer'
 import './nwmodel-vis.scss'
+import 'json-editor'
 
 function drawLegend () {
   const styles = [
@@ -90,18 +91,173 @@ function drawSelection () {
 }
 
 function drawJsonModel (file) {
-  d3.json(`/model/${file}`, (error, topoData) => {
+  d3.json(`/model/${file}`, (error, value) => {
     if (error) {
       throw error
     }
-    const visualizer = new GraphVisualizer(topoData)
-    // for debug
-    console.log('topology : ', visualizer.topoModel)
-    console.log('graphs   : ', visualizer.graphs)
-    // draw
-    visualizer.drawGraphs()
+    topoData = value
+    applyJsonModel()
   })
 }
+
+function applyJsonModel () {
+  const visualizer = new GraphVisualizer(topoData)
+  // for debug
+  console.log('topology : ', visualizer.topoModel)
+  console.log('graphs   : ', visualizer.graphs)
+  // draw
+  visualizer.drawGraphs()
+}
+
+function drawEditButton () {
+  d3.select('body')
+    .select('div#edit')
+    .append('button')
+    .attr('type', 'button')
+    .attr('class', 'btn-btn')
+    .on('click', onClick)
+    .append('div')
+    .text('Edit')
+
+  function onClick () {
+    drawDesign()
+  }
+}
+
+function drawPresentation () {
+  d3.select('body')
+    .select('div#design')
+    .style('display', 'none')
+
+  d3.select('body')
+    .select('div#editor')
+    .remove()
+
+  d3.select('body')
+    .select('div#presentation')
+    .style('display', '')
+}
+
+function drawDesign () {
+  d3.select('body')
+    .select('div#presentation')
+    .style('display', 'none')
+
+  d3.select('body')
+    .select('div#editor')
+    .remove()
+
+  var editorNode = d3.select('body')
+    .select('div#design')
+    .append('div')
+    .attr('id', 'editor')
+    .node()
+
+  d3.select('body')
+    .select('div#editor')
+    .append('button')
+    .attr('type', 'button')
+    .attr('class', 'btn-btn')
+    .on('click', onClickApply)
+    .append('div')
+    .text('Apply')
+
+  d3.select('body')
+    .select('div#editor')
+    .append('button')
+    .attr('type', 'button')
+    .attr('class', 'btn-btn')
+    .on('click', onClickCancel)
+    .append('div')
+    .text('Cancel')
+
+  d3.select('body')
+    .select('div#editor')
+    .append('button')
+    .attr('type', 'button')
+    .attr('class', 'btn-btn')
+    .on('click', onClickDownload)
+    .append('div')
+    .text('Download')
+
+  d3.select('body')
+    .select('div#editor')
+    .append('input')
+    .attr('type', 'file')
+    .attr('id', 'file')
+    .on('change', onChangeFile)
+
+  var editor = new JSONEditor(editorNode, {
+    ajax: true,
+    schema: {
+      $ref: '/model/schema.json'
+    },
+    startval: topoData
+  })
+
+  d3.select('body')
+    .select('div#design')
+    .style('display', '')
+
+  function onClickApply () {
+    topoData = editor.getValue()
+    d3.select('body') // clear all graphs
+      .select('div#visualizer')
+      .selectAll('div.networklayer')
+      .remove()
+    drawPresentation()
+    applyJsonModel()
+  }
+
+  function onClickCancel () {
+    drawPresentation()
+  }
+
+  function onClickDownload () {
+    var json = JSON.stringify(editor.getValue(), undefined, '\t')
+    var downloadLinkNode = d3.select('body')
+      .append('a')
+      .node()
+    downloadLinkNode.download = 'topo.json'
+    downloadLinkNode.href = URL.createObjectURL(new Blob([json], {type: 'text.plain'}))
+    downloadLinkNode.dataset.downloadurl = ['application/json', downloadLinkNode.download, downloadLinkNode.href].join(':')
+    downloadLinkNode.click()
+  }
+
+  function onChangeFile (e) {
+    if (window.File && window.FileReader && window.FileList && window.Blob) {
+    } else {
+      alert('The File APIs are not supported in this browser.')
+      return
+    }
+
+    if (!window.confirm('Data will be overwritten. Are you sure?')) {
+      d3.select('body')
+        .select('div#editor')
+        .select('input#file')
+        .property('value', '')
+      return
+    }
+
+    var file = event.target.files[0]
+    var reader = new FileReader()
+
+    reader.onload = function (event) {
+      d3.json(event.target.result, function (error, value) {
+        editor.setValue(value)
+        alert('Load completed.')
+
+        d3.select('body')
+          .select('div#editor')
+          .select('input#file')
+          .property('value', '')
+      })
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+var topoData = null
 
 // Entry point
 const modelFiles = [
@@ -121,6 +277,9 @@ const modelFiles = [
     'label': 'L2 Verbose Model'
   }
 ]
+
 drawLegend()
 drawSelection()
+drawEditButton()
+drawPresentation()
 drawJsonModel(modelFiles.find(d => d.selected).value)
