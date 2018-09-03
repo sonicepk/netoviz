@@ -1,18 +1,21 @@
 'use strict'
 
+import {TopoBaseContainer} from './base'
 import {TermPoint} from './term-point'
 import {GraphNode} from './graph'
 
-class SupportingNode {
+class SupportingNode extends TopoBaseContainer {
   constructor (data) {
+    super(data)
     this.networkRef = data['network-ref']
     this.nodeRef = data['node-ref']
     this.refPath = [this.networkRef, this.nodeRef].join('/')
   }
 }
 
-export class Node {
+export class Node extends TopoBaseContainer {
   constructor (data, nwPath, nwId, nodeNum) {
+    super(data)
     this.name = data['node-id'] // name string
     this.id = nwId + nodeNum * 100
     this.parentPath = nwPath
@@ -60,7 +63,8 @@ export class Node {
       'id': this.id,
       'path': this.path,
       'children': this.makeChildren(),
-      'attribute': this.attribute
+      'attribute': this.attribute,
+      'diffState': this.diffState
     })
   }
 }

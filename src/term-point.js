@@ -1,5 +1,6 @@
 'use strict'
 
+import {TopoBaseContainer} from './base'
 import {GraphNode, GraphLink} from './graph'
 
 class SupportingTermPoint {
@@ -11,8 +12,9 @@ class SupportingTermPoint {
   }
 }
 
-export class TermPoint {
+export class TermPoint extends TopoBaseContainer {
   constructor (data, nodePath, nodeId, tpNum) {
+    super(data)
     this.name = data['tp-id'] // name string
     this.id = nodeId + tpNum
     this.parentPath = nodePath
@@ -44,7 +46,8 @@ export class TermPoint {
       'id': this.id,
       'path': this.path,
       'children': this.makeChildren(),
-      'attribute': this.attribute
+      'attribute': this.attribute,
+      'diffState': this.diffState
     })
   }
 
@@ -58,7 +61,8 @@ export class TermPoint {
       'targetPath': this.path,
       'name': linkName,
       'path': [pathList, linkName].join('/'),
-      'attribute': {} // Notice (Link attribute does not implemented yet)
+      'attribute': {}, // Notice (Link attribute does not implemented yet)
+      'diffState': this.diffState
     })
   }
 }
