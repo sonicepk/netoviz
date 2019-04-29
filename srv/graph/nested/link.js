@@ -17,6 +17,10 @@ export default class NestedGraphLink {
     }
     const source = nodes.find(d => d.path === this.sourcePath)
     const target = nodes.find(d => d.path === this.targetPath)
-    return source && target
+    return source && target &&
+      (
+        (!('split' in source) && !('split' in target)) || // for shallow graph
+        (source.split <= 0 && target.split <= 0) // for deep graph
+      )
   }
 }
