@@ -13,17 +13,36 @@ export default class DeepNestedGraph extends ShallowNestedGraph {
     return this.reverse ? data.reverse : data.standard
   }
 
-  splitChildNode (parentNode, childNode) {
+  appendChildPathToParentsOf (targetTp) {
+    for (const parentTpPath of targetTp.parentTpPaths()) {
+      const parentTp = this.findNodeByPath(parentTpPath)
+      parentTp.children.push(targetTp.path)
+    }
+  }
+
+  splitTp (ownerNode, targetTpPaths) {
+    console.log(`  *** split tp on ${ownerNode.path}, parents = `, targetTpPaths)
+    for (const targetTpPath of targetTpPaths) {
+      const targetTp = this.findNodeByPath(targetTpPath)
+      const splitTargetTp = targetTp.splitTpOn(ownerNode)
+      this.appendChildPathToParentsOf(splitTargetTp)
+      this.nodes.push(splitTargetTp)
+    }
+  }
+
+  // childNode = target (to split)
+  splitNode (parentNode, childNode) {
     // console.log(`  ** child: ${childNode.path} has ${childNode.numberOfParentNodes()} parent nodes : `, childNode.parents)
     if (parentNode.split <= 0 && childNode.numberOfParentNodes() <= 1) {
       return childNode
     }
     // console.log('  ** child has multi-parents -> split')
-    const splitChildNode = childNode.splitByParent(parentNode.path)
+    const splitChildNode = childNode.splitNodeByParent(parentNode.path)
     this.nodes.push(splitChildNode)
     // console.log(`  ** splitChild : `, splitChildNode)
     parentNode.renameChildPath(childNode.path, splitChildNode.path)
     // console.log(`  ** parent :`, parentNode)
+    this.splitTp(splitChildNode, childNode.parentTpPaths())
     return splitChildNode
   }
 
@@ -41,7 +60,7 @@ export default class DeepNestedGraph extends ShallowNestedGraph {
       console.error(`child ${childNodePath} not found in ${parentNode.path}`)
     }
     // split multi-parents child node to single parent node
-    return this.splitChildNode(parentNode, childNode)
+    return this.splitNode(parentNode, childNode)
   }
 
   widthByChildNodes (node, childrenWHList) {
