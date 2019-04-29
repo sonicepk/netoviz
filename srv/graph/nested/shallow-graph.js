@@ -68,6 +68,7 @@ export default class ShallowNestedGraph extends NestedGraphConstants {
       // only root node has grid information
       rootNode.setGridPosition(ordinalPosition)
       const basePosition = this.grid.positionByOrdinal(ordinalPosition)
+      this.currentRootNodePath = rootNode.path
       this.calcNodePosition(rootNode, basePosition, 0)
     }
   }
@@ -151,7 +152,7 @@ export default class ShallowNestedGraph extends NestedGraphConstants {
     // height
     const height = this.heightByChildNodes(childrenWHList)
 
-    node.setRect(basePosition.x, basePosition.y, width, height, layerOrder)
+    node.setRect(this.currentRootNodePath, basePosition.x, basePosition.y, width, height, layerOrder)
     return { width: width, height: height }
   }
 
@@ -160,7 +161,7 @@ export default class ShallowNestedGraph extends NestedGraphConstants {
     const width = this.widthByTp(node)
     const height = this.heightByTp()
 
-    node.setRect(basePosition.x, basePosition.y, width, height, layerOrder)
+    node.setRect(this.currentRootNodePath, basePosition.x, basePosition.y, width, height, layerOrder)
     return { width: width, height: height }
   }
 
@@ -169,7 +170,7 @@ export default class ShallowNestedGraph extends NestedGraphConstants {
     const cy1x = basePosition.y + this.nodeYPad + this.r
     for (const tpPath of node.parentTpPaths()) {
       const tp = this.findNodeByPath(tpPath)
-      tp.setCircle(cx11, cy1x, this.r, layerOrder)
+      tp.setCircle(this.currentRootNodePath, cx11, cy1x, this.r, layerOrder)
       cx11 += this.r * 2 + this.tpInterval
     }
   }
@@ -192,18 +193,17 @@ export default class ShallowNestedGraph extends NestedGraphConstants {
       // check tp path is available in operativeNodes?
       for (const childTpPath of tp.childTpPaths()) {
         const childTp = operativeNodes.find(d => d.path === childTpPath)
-        if (!childTp) {
+        if (!childTp || childTp.rootNodePath !== tp.rootNodePath) {
           continue
         }
+        console.log(`  *** support-tp from ${tp.path} to ${childTp.path}`)
         const name = `${tp.linkPath()},${childTp.linkPath()}`
         supportTpLinks.push({
           name: name,
           path: `${tp.layer()},${childTp.layer()}/${name}`,
           type: 'support-tp',
           sourcePath: tp.path,
-          targetPath: childTpPath,
-          sourceId: tp.id,
-          targetId: childTp.id
+          targetPath: childTpPath
         })
       }
     }

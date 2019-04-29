@@ -94,7 +94,8 @@ export default class ShallowNestedGraphNode {
     return pathElements.join(',')
   }
 
-  setCircle (cx, cy, r, layerOrder) {
+  setCircle (rootNodePath, cx, cy, r, layerOrder) {
+    this.rootNodePath = rootNodePath
     this.operative = true
     this.cx = cx
     this.cy = cy
@@ -102,7 +103,8 @@ export default class ShallowNestedGraphNode {
     this.layerOrder = layerOrder
   }
 
-  setRect (x, y, width, height, layerOrder) {
+  setRect (rootNodePath, x, y, width, height, layerOrder) {
+    this.rootNodePath = rootNodePath
     this.operative = true
     this.x = x
     this.y = y
