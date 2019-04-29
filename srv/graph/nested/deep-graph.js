@@ -20,12 +20,22 @@ export default class DeepNestedGraph extends ShallowNestedGraph {
     }
   }
 
+  existParentTpInSameRootNode (targetTpPath) {
+    return this.nodes
+      .filter(d => d.rootNodePath === this.currentRootNodePath)
+      .find(d => d.children.find(p => p === targetTpPath))
+  }
+
   splitTp (ownerNode, targetTpPaths) {
-    console.log(`  *** split tp on ${ownerNode.path}, parents = `, targetTpPaths)
+    // console.log(`  *** split tp on ${ownerNode.path}, parents = `, targetTpPaths)
     for (const targetTpPath of targetTpPaths) {
       const targetTp = this.findNodeByPath(targetTpPath)
+      if (!this.existParentTpInSameRootNode(targetTpPath)) {
+        continue
+      }
       const splitTargetTp = targetTp.splitTpOn(ownerNode)
       this.appendChildPathToParentsOf(splitTargetTp)
+      ownerNode.parents.push(splitTargetTp.path)
       this.nodes.push(splitTargetTp)
     }
   }

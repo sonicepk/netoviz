@@ -196,7 +196,7 @@ export default class ShallowNestedGraph extends NestedGraphConstants {
         if (!childTp || childTp.rootNodePath !== tp.rootNodePath) {
           continue
         }
-        console.log(`  *** support-tp from ${tp.path} to ${childTp.path}`)
+        // console.log(`  *** support-tp from ${tp.path} to ${childTp.path}`)
         const name = `${tp.linkPath()},${childTp.linkPath()}`
         supportTpLinks.push({
           name: name,

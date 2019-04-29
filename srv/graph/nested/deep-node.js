@@ -14,12 +14,6 @@ export default class DeepNestedGraphNode extends ShallowNestedGraphNode {
       .concat(newChildPath)
   }
 
-  renameParentPath (oldParentPath, newParentPath) {
-    this.parents = this.parents
-      .filter(d => d !== oldParentPath)
-      .concat(newParentPath)
-  }
-
   duplicate () {
     this.split++
     return new DeepNestedGraphNode(this)
@@ -30,7 +24,6 @@ export default class DeepNestedGraphNode extends ShallowNestedGraphNode {
     splitTp.path = `${ownerNode.path}/${this.name}::${this.split}`
     splitTp.children = this.childTpPaths().concat(ownerNode.path)
     splitTp.parents = this.parents
-    ownerNode.renameParentPath(this.path, splitTp.path)
     return splitTp
   }
 
@@ -39,7 +32,7 @@ export default class DeepNestedGraphNode extends ShallowNestedGraphNode {
     splitNode.path = `${this.path}::${this.split}`
     // overwrite children and parents (selected by reverse flag in constructor)
     splitNode.children = this.children
-    splitNode.parents = this.parentTpPaths().concat(parentNodePath)
+    splitNode.parents = [ parentNodePath ]
     this.parents = this.parents.filter(d => d !== parentNodePath)
     return splitNode
   }
